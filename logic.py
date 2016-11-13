@@ -31,12 +31,14 @@ def check_spot(board, col, row, player):
 		return False
 	if row<0 or row>5:
 		return False
-	if board[col][row]!=-1 or board[col][row]!=player:
+	if board[col][row]!=-1 and board[col][row]!=player:
 		return False
 	return True
 
 
 def col_right_height(board, col, row_height):
+	if row_height<0:
+		return False
 	if row_height>0:
 		return board[col][row_height]==-1 and board[col][row_height-1]!=-1
 	return board[col][row_height]==-1
@@ -58,15 +60,18 @@ def check_diag(board, amount, player, completed):
 					for k in range(4-amount):
 						if not check_spot(board, 6-i+amount+k, j+amount+k, player):
 							goodspot=False
+							break
 					if goodspot and col_right_height(board, 6-i+amount, j+amount): #line from bottom left to top right
-						print("diag1", amount)
+						#print("diag1", amount)
 						return 6-i+amount
 					goodspot=True
 					for k in range(4-amount):
 						if not check_spot(board, 6-i-k, j-k, player):
 							goodspot=False
+							break
 					if goodspot and col_right_height(board, 6-i-1, j-1): #from top right to bottom left
-						print("diaga", amount)
+						#print(6-i-1, j-1)
+						#print("diaga", amount)
 						return 6-i-1
 				if valid and completed:
 					return 0
@@ -86,15 +91,17 @@ def check_diag(board, amount, player, completed):
 					for k in range(4-amount): #goes from top left to bottom right
 						if not check_spot(board, i+amount+k, 5-j-amount-k, player):
 							goodspot=False
+							break
 					if goodspot and col_right_height(board, i+amount, 5-j-amount): #
-						print("dddd", amount)
+						#print("dddd", amount)
 						return i+amount
 					goodspot=True
 					for k in range(4-amount):
 						if not check_spot(board, i-k, 5-j+k, player):
 							goodspot=False
+							break
 					if goodspot and i>0 and j<7 and j>0 and col_right_height(board, i-1, 6-j): #bottom right to top left
-						print("diagaaaa", amount)
+						#print("diagaaaa", amount)
 						return i-1
 				if valid and completed:
 					return 0
@@ -115,8 +122,9 @@ def check_col(board, amount, player, completed):
 					for i in range(4-amount): #check to see if four pieces can fit there
 						if not check_spot(board, col, row+amount+i, player):
 							goodspot=False
+							break
 					if goodspot:
-						print("col", amount)
+						#print("col", amount)
 						return col
 				if valid and completed:
 					return 0
@@ -139,14 +147,15 @@ def check_row(board, amount, player, completed):
 						if not check_spot(board, col+amount+i, row, player):
 							goodspot=False
 					if goodspot and col_right_height(board, col+amount, row):
-						print("row to right", amount)
+						#print("row to right", amount)
 						return col+amount
 					goodspot=True
 					for i in range(4-amount):
 						if not check_spot(board, col-i, row, player):
 							goodspot=False
+							break
 					if goodspot and col_right_height(board, col-1, row):
-						print("row left", amount)
+						#print("row left", amount)
 						return col-1
 				if valid and completed:
 					return 0
@@ -236,25 +245,26 @@ def get_column(board):
 def ai_choose_col(board, player, num_players):
 	col = winning_move(board, player)
 	if col!=-1 and check_if_legal(board, col):
-		print("winning move")
+		#print("winning move")
 		return col
 	col = stop_other_three(board, player, num_players)
 	if col!=-1 and check_if_legal(board, col):
-		print("stop other from winning")
+		#print("stop other from winning")
 		return col
 	col = progress_two(board, player)
 	if col!=-1 and check_if_legal(board, col):
-		print("getting 3 from two")
+		#print("getting 3 from two")
 		return col
 	col = defend_two(board, player, num_players)
 	if col!=-1 and check_if_legal(board, col):
-		print("stopping their two")
+		#print("stopping their two")
 		return col
 	col = next_to_existing(board, player)
 	if col!=-1 and check_if_legal(board, col):
-		print("make two")
+		#print("make two")
 		return col
 	##to get to this point it is the first move in the game
+	#print("getting randon")
 	return get_column(board)
 
 
