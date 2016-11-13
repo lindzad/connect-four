@@ -30,7 +30,6 @@ def on_click(pnt, circles, pieces, player, circles_margin, col_width):
     if x > max_y or x < 0: return
     place_in_col(x, circles, pieces, player)
 
-
 #loops forever getting clicks
 def game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width):
     count = 0
@@ -52,15 +51,25 @@ def game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width)
             on_click(win.getMouse(), circles, pieces, player, circles_margin, col_width)
         winner=board_won(pieces, num_players)
         if winner!=-1:
-        	turn_text.setText("Winner is {}".format(players[winner][1]))
-        	sleep(1)
-        	win.getMouse()
-        	return
+            turn_text.setText("Winner is {}!".format(players[winner][1]))
+            turn_text.setTextColor(players[winner][0])
+            sleep(3)
+            win.getMouse()
+            return
         count+=1
 
 #setup pieces
 def pieces_setup():
     return [ [ -1 for y in range(max_y)] for x in range(max_x)] # -1 means unpopulated
+
+def wait_for_enter_or_click(win):
+    while True:
+        pt = win.checkMouse()
+        if pt is not None:
+            return
+        key = win.checkKey()
+        if key is not None and "Return" in key:
+            return
 
 #sets up the graphics
 def graphics_setup():
@@ -99,7 +108,7 @@ def num_players_ui():
     button_text = Text(button_center, "Continue")
     button_text.draw(num_players_win)
     num_continue_button.draw(num_players_win)
-    num_players_win.getMouse() # wait for mouse
+    wait_for_enter_or_click(num_players_win)
     num_players = 2
     num_players_entry_val = num_players_entry.getText()
     if num_players_entry_val != '':
@@ -107,7 +116,7 @@ def num_players_ui():
     num_players_win.close()
     return num_players
 
-def player_names(num_players):
+def player_names_ui(num_players):
     # Player names
     names_win = GraphWin("Connect L&G - Names", 500, 75+25*num_players)
     name_entries = []
@@ -122,7 +131,7 @@ def player_names(num_players):
     button_text = Text(button_center, "Continue")
     button_text.draw(names_win)
     names_continue_button.draw(names_win)
-    names_win.getMouse()
+    wait_for_enter_or_click(names_win)
     names = []
     for name_entry in name_entries:
         name = name_entry.getText()
@@ -133,7 +142,7 @@ def player_names(num_players):
 #screens to choose game settings
 def pregame():
     num_players = num_players_ui()
-    names = player_names(num_players)
+    names = player_names_ui(num_players)
     return names
 
 #main / initialize
