@@ -37,14 +37,17 @@ def check_diag(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					if (board[6-i+amount][j+amount]==-1):
-						#print("diag")
-						return 6-i+amount, True
+					goodspot=True
+					for k in range(3-amount):
+						if (board[6-i+amount+k][j+amount+k]!=-1):
+							goodspot=False
+					if goodspot:
+						return 6-i+amount
 					if i<6 and j>0 and board[6-i-1][j-1]==-1:
 						#print("diaga")
-						return 6-i-1, True
+						return 6-i-1
 				if valid and completed:
-					return 0, True
+					return 0
 
 	#arrays from high left to low right
 	for i in range(0, 7-amount+completed):
@@ -57,15 +60,18 @@ def check_diag(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					if (board[i+amount][5-j-amount]==-1):
-						#print("diagonal!")
-						return i+amount, True
+					goodspot=True
+					for k in range(3-amount):
+						if (board[i+amount+k][5-j-amount-k]!=-1):
+							goodspot=False
+					if goodspot:
+						return i+amount
 					if i>0 and j<7 and j>0 and board[i-1][6-j]==-1:
 						#print("diagaaaa")
-						return i-1, True
+						return i-1
 				if valid and completed:
-					return 0, True
-	return 0, False
+					return 0
+	return -1
 
 def check_col(board, amount, player, completed):
 	for col in range(0, 7):
@@ -78,12 +84,15 @@ def check_col(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					if board[col][row+amount]==-1:
-						#print("column")
-						return col, True
+					goodspot=True
+					for i in range(3-amount): #check to see if four pieces can fit there
+						if board[col][row+amount+i]!=-1:
+							goodspot=False
+					if goodspot:
+						return col
 				if valid and completed:
-					return 0, True
-	return 0, False
+					return 0
+	return -1
 
 
 def check_row(board, amount, player, completed):
@@ -97,110 +106,118 @@ def check_row(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					for i in range(4-amount):
-						goodspot=True
+					goodspot=True
+					for i in range(3-amount):
 						if (board[col+amount+ i][row]!=-1):
 							goodspot=False
-						if goodspot:
-							return col+amount, True
+					if goodspot:
+						return col+amount
 					if col!=0 and board[col-1][row]==-1:
 						#print("row")
-						return col-1, True
+						return col-1
 				if valid and completed:
-					return 0, True
+					return 0
 
-	return 0, False
+	return -1
 
 def board_won(board, num_players):
 	for i in range(num_players):
-		col, verdict = check_row(board, 4, i, 1)
-		if verdict:
+		verdict = check_row(board, 4, i, 1)
+		if verdict!=-1:
 			return i
-		col, verdict = check_col(board, 4, i, 1)
-		if verdict:
+		verdict = check_col(board, 4, i, 1)
+		if verdict!=-1:
 	 		return i
-		col, verdict = check_diag(board, 4, i, 1)
-		if verdict:
+		verdict = check_diag(board, 4, i, 1)
+		if verdict!=-1:
 			return i
 	return -1
 
 def winning_move(board, player):
-	col, done = check_row(board,3,player,0)
-	if done:
-		return done, col
-	col, done = check_col(board, 3,player,0)
-	if done:
-		return done, col
-	col, done = check_diag(board, 3,player,0)
-	return done, col
+	col = check_row(board,3,player,0)
+	if col!=-1:
+		return col
+	col = check_col(board, 3,player,0)
+	if col!=-1:
+		return col
+	col = check_diag(board, 3,player,0)
+	return col
 
 def stop_other_three(board, player, num_players):
 	for i in range(num_players):
 		if i !=player:
-			col, done = check_row(board,3,i,0)
-			if done:
-				return done, col
-			col, done = check_col(board, 3,i,0)
-			if done:
-				return done, col
-			col, done = check_diag(board, 3,i,0)
-			if done:
-				return done, col
-	return done, col
+			col = check_row(board,3,i,0)
+			if col!=-1:
+				return col
+			col= check_col(board, 3,i,0)
+			if col!=-1:
+				return col
+			col = check_diag(board, 3,i,0)
+			if col!=-1:
+				return col
+	return -1
 
 def progress_two(board, player):
-	col, done = check_row(board,2,player, 0)
-	if done:
-		return done, col
-	col, done = check_col(board, 2,player,0)
-	if done:
-		return done, col
-	col, done = check_diag(board, 2,player,0)
-	return done, col
+	col = check_row(board,2,player, 0)
+	if col!=-1:
+		return col
+	col = check_col(board, 2,player,0)
+	if col!=-1:
+		return col
+	col = check_diag(board, 2,player,0)
+	return col
 
 def defend_two(board, player, num_players):
 	for i in range(num_players):
 		if i !=player:
-			col, done = check_row(board,2,i, 0)
-			if done:
-				return done, col
-			col, done = check_col(board, 2,i,0)
-			if done:
-				return done, col
-			col, done = check_diag(board, 2,i, 0)
-			if done:
-				return done, col
-	return done, col
+			col = check_row(board,2,i, 0)
+			if col!=-1:
+				return col
+			col = check_col(board, 2,i,0)
+			if col!=-1:
+				return col
+			col = check_diag(board, 2,i, 0)
+			if col!=-1:
+				return col
+	return -1
 
 def next_to_existing(board, player):
-	col, done = check_row(board,1,player, 0)
-	if done:
-		return done, col
-	col, done = check_col(board, 1,player, 0)
-	if done:
-		return done, col
-	col, done = check_diag(board, 1,player, 0)
-	return done, col
+	col= check_row(board,1,player, 0)
+	if col!=-1:
+		return col
+	col= check_col(board, 1,player, 0)
+	if col!=-1:
+		return col
+	col= check_diag(board, 1,player, 0)
+	return col
+
+
+def get_column(board):
+	for col in range(7):
+		if board[col][5]==-1:
+			return col
+	print("BOARD IS FULL SOS")
+	return -1
 
 
 def ai_choose_col(board, player, num_players):
-	verdict, col = winning_move(board, player)
-	if verdict:
+	col = winning_move(board, player)
+	if col!=-1:
 		return col
-	verdict, col = stop_other_three(board, player, num_players)
-	if verdict:
+	col = stop_other_three(board, player, num_players)
+	if col!=-1:
 		return col
-	verdict, col = progress_two(board, player)
-	if verdict:
+	col = progress_two(board, player)
+	if col!=-1:
 		return col
-	verdict, col = defend_two(board, player, num_players)
-	if verdict:
+	col = defend_two(board, player, num_players)
+	if col!=-1:
 		return col
-	verdict, col = next_to_existing(board, player)
-	if verdict:
+	col = next_to_existing(board, player)
+	if col!=-1:
 		return col
 	##to get to this point it is the first move in the game
-	return 3
+	return get_column(board)
 
 
 def print_board(board):
