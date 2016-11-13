@@ -66,7 +66,7 @@ def check_diag(board, amount, player, completed):
 						return 6-i+amount
 					goodspot=True
 					for k in range(4-amount):
-						if not check_spot(board, 6-i-k, j-k, player):
+						if not check_spot(board, 6-i-k-1, j-k, player):
 							goodspot=False
 							break
 					if goodspot and col_right_height(board, 6-i-1, j-1): #from top right to bottom left
@@ -97,7 +97,7 @@ def check_diag(board, amount, player, completed):
 						return i+amount
 					goodspot=True
 					for k in range(4-amount):
-						if not check_spot(board, i-k, 5-j+k, player):
+						if not check_spot(board, i-k-1, 5-j+k, player):
 							goodspot=False
 							break
 					if goodspot and i>0 and j<7 and j>0 and col_right_height(board, i-1, 6-j): #bottom right to top left
@@ -151,7 +151,7 @@ def check_row(board, amount, player, completed):
 						return col+amount
 					goodspot=True
 					for i in range(4-amount):
-						if not check_spot(board, col-i, row, player):
+						if not check_spot(board, col-1-i, row, player):
 							goodspot=False
 							break
 					if goodspot and col_right_height(board, col-1, row):
