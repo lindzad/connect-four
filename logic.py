@@ -14,12 +14,14 @@
 
 #board is array of arrays, first row then column
 
-#AI is always number 1 in array
+#In array, empty is -1, different players are 0-7
 
-#check to see if adding it will help iin future
+#check to see if adding it will help in future
 
+#doesnt have any foresight
 
-#additional logic to add, check if 4 can fit before add one
+#combine checking offensive and defensive for lowering amounts into one large loop
+
 
 from random import randint
 
@@ -44,6 +46,50 @@ def col_right_height(board, col, row_height):
 	return board[col][row_height]==-1
 
 
+def diag_bottom_left_top_right_check(board, amount, col, row, player):
+	goodspot=True
+	for k in range(4-amount):
+		if not check_spot(board, 6-col+amount+k, row+amount+k, player):
+			goodspot=False
+			break
+	if goodspot and col_right_height(board, 6-col+amount, row+amount): 
+		#line from bottom left to top right
+		#print("diag1", amount)
+		return 6-col+amount
+	goodspot=True
+	for k in range(4-amount):
+		if not check_spot(board, 6-col-k-1, row-k, player):
+			goodspot=False
+			break
+	if goodspot and col_right_height(board, 6-col-1, row-1): 
+		#from top right to bottom left
+		#print(6-i-1, j-1)
+		#print("diaga", amount)
+		return 6-col-1
+	return -1
+
+
+def diag_top_left_to_bottom_right(board, amount, col, row, player):
+	goodspot=True
+	for k in range(4-amount): #goes from top left to bottom right
+		if not check_spot(board, col+amount+k, 5-row-amount-k, player):
+			goodspot=False
+			break
+	if goodspot and col_right_height(board, col+amount, 5-row-amount):
+		#print("dddd", amount)
+		return col+amount
+	goodspot=True
+	for k in range(4-amount):
+		if not check_spot(board, col-k-1, 5-row+k, player):
+			goodspot=False
+			break
+	if goodspot and check_spot(board, col, row, player) and col_right_height(board, col-1, 6-row): 
+		#bottom right to top left
+		#print("diagaaaa", amount)
+		return col-1
+	return -1
+
+
 def check_diag(board, amount, player, completed):
 	##arrays from low left to high right
 	for i in range(amount, 7):
@@ -56,23 +102,9 @@ def check_diag(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					goodspot=True
-					for k in range(4-amount):
-						if not check_spot(board, 6-i+amount+k, j+amount+k, player):
-							goodspot=False
-							break
-					if goodspot and col_right_height(board, 6-i+amount, j+amount): #line from bottom left to top right
-						#print("diag1", amount)
-						return 6-i+amount
-					goodspot=True
-					for k in range(4-amount):
-						if not check_spot(board, 6-i-k-1, j-k, player):
-							goodspot=False
-							break
-					if goodspot and col_right_height(board, 6-i-1, j-1): #from top right to bottom left
-						#print(6-i-1, j-1)
-						#print("diaga", amount)
-						return 6-i-1
+					result = diag_bottom_left_top_right_check(board, amount, i, j, player)
+					if result!=-1:
+						return result
 				if valid and completed:
 					return 0
 
@@ -87,22 +119,9 @@ def check_diag(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					goodspot=True
-					for k in range(4-amount): #goes from top left to bottom right
-						if not check_spot(board, i+amount+k, 5-j-amount-k, player):
-							goodspot=False
-							break
-					if goodspot and col_right_height(board, i+amount, 5-j-amount): #
-						#print("dddd", amount)
-						return i+amount
-					goodspot=True
-					for k in range(4-amount):
-						if not check_spot(board, i-k-1, 5-j+k, player):
-							goodspot=False
-							break
-					if goodspot and i>0 and j<7 and j>0 and col_right_height(board, i-1, 6-j): #bottom right to top left
-						#print("diagaaaa", amount)
-						return i-1
+					result = diag_top_left_to_bottom_right(board, amount, i, j, player)
+					if result!=-1:
+						return result
 				if valid and completed:
 					return 0
 	return -1
@@ -119,7 +138,8 @@ def check_col(board, amount, player, completed):
 					k+=1
 				if valid and not completed:
 					goodspot=True
-					for i in range(4-amount): #check to see if four pieces can fit there
+					for i in range(4-amount): 
+						#check to see if four pieces can fit there
 						if not check_spot(board, col, row+amount+i, player):
 							goodspot=False
 							break
@@ -264,7 +284,7 @@ def ai_choose_col(board, player, num_players):
 		#print("make two")
 		return col
 	##to get to this point it is the first move in the game
-	#print("getting randon")
+	#print("getting random")
 	return get_column(board)
 
 
