@@ -1,4 +1,4 @@
-from graphics import Point, GraphWin, Circle, Text, Entry
+from graphics import Point, GraphWin, Circle, Text, Entry, Rectangle
 from time import sleep
 from logic import ai_choose_col, board_won
 
@@ -21,7 +21,6 @@ def place_in_col(col, circles, pieces, player):
     circle = circles[col][y]
     player_color = player[1]
     circle.setFill(player_color)
-    print(circle)
 
 # called with Point on click
 def on_click(pnt, circles, pieces, player):
@@ -94,8 +93,17 @@ def pregame():
     num_players_label.draw(num_players_win)
     num_players_entry = Entry(Point(175, 25), 5)
     num_players_entry.draw(num_players_win)
+    num_continue_button = Rectangle(Point(50, 50), Point(275, 75))
+    #num_continue_button.setFill("white")
+    button_center = num_continue_button.getCenter()
+    button_text = Text(button_center, "Continue")
+    button_text.draw(num_players_win)
+    num_continue_button.draw(num_players_win)
     num_players_win.getMouse() # wait for mouse
-    num_players = int(num_players_entry.getText())
+    num_players = 2
+    num_players_entry_val = num_players_entry.getText()
+    if num_players_entry_val != '':
+        num_players = int(num_players_entry_val)
     num_players_win.close()
     #TODO add continue buttons
     # Player names
