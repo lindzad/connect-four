@@ -60,7 +60,7 @@ def check_diag(board, amount, player, completed):
 					if (board[i+amount][5-j-amount]==-1):
 						#print("diagonal!")
 						return i+amount, True
-					if i>0 and board[i-1][6-j]==-1:
+					if i>0 and j<7 and j>0 and board[i-1][6-j]==-1:
 						#print("diagaaaa")
 						return i-1, True
 				if valid and completed:
@@ -97,9 +97,12 @@ def check_row(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					if (board[col+amount][row]==-1):
-						#print("row!")
-						return col+amount, True
+					for i in range(4-amount):
+						goodspot=True
+						if (board[col+amount+ i][row]!=-1):
+							goodspot=False
+						if goodspot:
+							return col+amount, True
 					if col!=0 and board[col-1][row]==-1:
 						#print("row")
 						return col-1, True
@@ -112,14 +115,14 @@ def board_won(board, num_players):
 	for i in range(num_players):
 		col, verdict = check_row(board, 4, i, 1)
 		if verdict:
-			return True, i
+			return i
 		col, verdict = check_col(board, 4, i, 1)
 		if verdict:
-	 		return True, i
+	 		return i
 		col, verdict = check_diag(board, 4, i, 1)
 		if verdict:
-			return True, i
-	return False, -1
+			return i
+	return -1
 
 def winning_move(board, player):
 	col, done = check_row(board,3,player,0)

@@ -1,6 +1,6 @@
 from graphics import Point, GraphWin, Circle, Text, Entry
 from time import sleep
-from logic import ai_choose_col
+from logic import ai_choose_col, board_won
 
 #globals, I hate globals
 max_x = 7
@@ -50,6 +50,12 @@ def game_loop(win, circles, pieces, turn_text, names):
             place_in_col(x, circles, pieces, player)
         else: # human
             on_click(win.getMouse(), circles, pieces, player)
+        winner=board_won(pieces, num_players)
+        if winner!=-1:
+        	turn_text.setText("Winner is {}".format(players[winner][1]))
+        	sleep(1)
+        	win.getMouse()
+        	return
         count+=1
 
 #setup pieces
