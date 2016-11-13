@@ -1,6 +1,10 @@
 from graphics import Point, GraphWin, Circle, Text, Entry, Rectangle
 from time import sleep
 from logic import ai_choose_col, board_won
+import socket
+from networking import Echo
+from twisted.internet.protocol import DatagramProtocol
+from twisted.internet import reactor
 
 #globals, I hate globals
 max_x = 7
@@ -145,11 +149,35 @@ def pregame():
     names = player_names_ui(num_players)
     return names
 
+def type_ui():
+    net_win = GraphWin("Connect L&G", 500, 200)
+    local_text = Text(Point(125, 100), "Local Multiplayer")
+    online_text = Text(Point(375, 100), "Online 2-player")
+    local_text.draw(net_win)
+    online_text.draw(net_win)
+    click = net_win.getMouse()
+    net_win.close()
+    return click.x > 250
+
 #main / initialize
 def main():
-    names = pregame()
+    networking_type = type_ui()
+    if networking_type:
+        portSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        portSocket.setblocking(False)
+        portSocket.bind(('127.0.0.1', 9999))
+        port = reactor.adoptDatagramPort(
+            portSocket.fileno(), socket.AF_INET, Echo())
+        portSocket.close()
+
+        names = player_names_ui(2)
+    else:
+        names = pregame()
+
+
     win, circles, turn_text, circles_margin, col_width = graphics_setup()
     pieces = pieces_setup()
+    reactor.run()
 
     game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width)
     win.close()    # Close window when done
