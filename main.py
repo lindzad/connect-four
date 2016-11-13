@@ -23,18 +23,18 @@ def place_in_col(col, circles, pieces, player):
     circle.setFill(player_color)
 
 # called with Point on click
-def on_click(pnt, circles, pieces, player):
+def on_click(pnt, circles, pieces, player, circles_margin, col_width):
     # determine which column got clicked
     click_x = pnt.x
-    x = int((click_x-15)//130)
-    if x > max_y: return
+    x = int((click_x-(circles_margin))//col_width)
+    if x > max_y or x < 0: return
     place_in_col(x, circles, pieces, player)
 
 
 #loops forever getting clicks
-def game_loop(win, circles, pieces, turn_text, names):
+def game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width):
     count = 0
-    colors = ["red", "yellow", "green", "blue"]
+    colors = ["red", "yellow", "green", "blue", "purple", "cyan", "brown", "black"]
     players = []
     for i, name in enumerate(names):
         players.append((colors[i], name))
@@ -46,9 +46,10 @@ def game_loop(win, circles, pieces, turn_text, names):
         turn_text.setText("{}\'s Turn".format(player_type, cur_player_num))
         if "AI" in players[cur_player_num][1]:
             x = ai_choose_col(pieces, cur_player_num, num_players)
+            sleep(0.5)
             place_in_col(x, circles, pieces, player)
         else: # human
-            on_click(win.getMouse(), circles, pieces, player)
+            on_click(win.getMouse(), circles, pieces, player, circles_margin, col_width)
         winner=board_won(pieces, num_players)
         if winner!=-1:
         	turn_text.setText("Winner is {}".format(players[winner][1]))
@@ -63,8 +64,8 @@ def pieces_setup():
 
 #sets up the graphics
 def graphics_setup():
-    circle_margin = 30
-    circle_radius = 50
+    circle_margin = 20
+    circle_radius = 40
     circles_width = max_x*circle_radius*2+(max_x+1)*circle_margin
     circles_height = max_y*circle_radius*2+(max_y+1)*circle_margin
     margin_width = 0
@@ -79,14 +80,14 @@ def graphics_setup():
     for col in circles:
         for circle in col:
             circle.draw(win)
-    turn_text = Text(Point(int(total_width//2), 40), "\'s Turn")
+    turn_text = Text(Point(int(total_width//2), int(margin_height//2)+10), "\'s Turn")
     turn_text.setSize(24)
     turn_text.setStyle("bold")
     turn_text.draw(win)
-    return (win, circles, turn_text)
+    col_width = circle_radius*2+circle_margin
+    return (win, circles, turn_text, circle_margin, col_width)
 
-#screen to choose game settings
-def pregame():
+def num_players_ui():
     # Number of Players
     num_players_win = GraphWin("Connect L&G - Number of Players", 300, 100)
     num_players_label = Text(Point(75, 25), "Number of Players:")
@@ -94,7 +95,6 @@ def pregame():
     num_players_entry = Entry(Point(175, 25), 5)
     num_players_entry.draw(num_players_win)
     num_continue_button = Rectangle(Point(50, 50), Point(275, 75))
-    #num_continue_button.setFill("white")
     button_center = num_continue_button.getCenter()
     button_text = Text(button_center, "Continue")
     button_text.draw(num_players_win)
@@ -105,16 +105,23 @@ def pregame():
     if num_players_entry_val != '':
         num_players = int(num_players_entry_val)
     num_players_win.close()
-    #TODO add continue buttons
+    return num_players
+
+def player_names(num_players):
     # Player names
-    names_win = GraphWin("Connect L&G - Names", 500, 50*num_players)
+    names_win = GraphWin("Connect L&G - Names", 500, 75+25*num_players)
     name_entries = []
-    for i in range(num_players):
+    for i in range(num_players-1, -1, -1):
         name_label = Text(Point(75, 25*(i+1)), "Name or AI_#:")
         name_label.draw(names_win)
         name_entry = Entry(Point(250, 25*(i+1)), 20)
         name_entry.draw(names_win)
         name_entries.append(name_entry)
+    names_continue_button = Rectangle(Point(75, 25*(num_players+1)), Point(275, 25+25*(num_players+1)))
+    button_center = names_continue_button.getCenter()
+    button_text = Text(button_center, "Continue")
+    button_text.draw(names_win)
+    names_continue_button.draw(names_win)
     names_win.getMouse()
     names = []
     for name_entry in name_entries:
@@ -123,13 +130,19 @@ def pregame():
     names_win.close()
     return names
 
+#screens to choose game settings
+def pregame():
+    num_players = num_players_ui()
+    names = player_names(num_players)
+    return names
+
 #main / initialize
 def main():
     names = pregame()
-    win, circles, turn_text = graphics_setup()
+    win, circles, turn_text, circles_margin, col_width = graphics_setup()
     pieces = pieces_setup()
 
-    game_loop(win, circles, pieces, turn_text, names)
+    game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width)
     win.close()    # Close window when done
 
 if __name__ == "__main__":
