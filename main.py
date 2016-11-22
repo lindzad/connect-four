@@ -6,6 +6,7 @@ from graphics import Point, GraphWin, Circle, Text, Entry, Rectangle
 from twisted.internet import reactor, protocol
 
 from logic import ai_choose_col, board_won
+from chunking import get_ai_move
 from networking import *
 
 #globals, I hate globals
@@ -51,7 +52,8 @@ def game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width)
         player_type = players[cur_player_num][1]
         turn_text.setText("{}\'s Turn".format(player_type, cur_player_num))
         if "AI" in players[cur_player_num][1]:
-            x = ai_choose_col(pieces, cur_player_num, num_players)
+            #x = ai_choose_col(pieces, cur_player_num, num_players)
+            x = get_ai_move(pieces, cur_player_num, num_players)
             sleep(0.5)
             place_in_col(x, circles, pieces, player)
         else: # human
