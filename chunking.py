@@ -1,6 +1,9 @@
 #7 columns of 6 rows,
 #starts in bottom left corner.
 
+
+#not successultt stopping the other player when they have a column of 3 and you have col of 2
+
 """
 chunking makes moves for any player
 maybe do by dictionary with board val and number of, then length to see how many tyoes there are
@@ -32,10 +35,15 @@ class Move(object):
 
 
 def sets_up_other(board, col, row, player, num_players):
-	board[col][row]=player
-	if board_won(board, num_players):
+	new_board=[]
+	for i in range(7):
+		new_board.append([])
+		for j in range(6):
+			new_board[i].append(board[i][j])
+	new_board[col][row]=player
+	if board_won(new_board, num_players):
 		return False
-	if stop_other_three(board, player, num_players)!=-1:
+	if stop_other_three(new_board, player, num_players)!=-1:
 		return True
 	return False
 
