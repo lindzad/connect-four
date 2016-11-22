@@ -1,9 +1,12 @@
-from graphics import Point, GraphWin, Circle, Text, Entry, Rectangle
 from time import sleep
-from logic import ai_choose_col, board_won
-import socket
-from twisted.internet import reactor, protocol
 import struct
+import socket
+
+from graphics import Point, GraphWin, Circle, Text, Entry, Rectangle
+from twisted.internet import reactor, protocol
+
+from logic import ai_choose_col, board_won
+from networking import *
 
 #globals, I hate globals
 max_x = 7
@@ -165,148 +168,14 @@ def waiting_ui():
     text.draw(win)
     return win
 
-def make_server(waiting_win):
-    port = 8000
-    factory = EchoServerFactory(waiting_win)
-    factory.protocol = EchoServer
-    reactor.listenTCP(port,factory)
-    print("Listening as Server on port {}".format(port))
-
-class EchoClient(protocol.Protocol):
-    """Once connected, send a message, then print the result."""
-
-    def connectionMade(self):
-        print("Connected to Server!")
-        #self.transport.write(b"hello, world!")
-        self.factory.waiting_win.close()
-        self.win, self.circles, self.turn_text, self.circles_margin, self.col_width = graphics_setup()
-        self.pieces = pieces_setup()
-        self.player = (1, "red")
-        self.turn_text.setText("Your Turn")
-        pnt = self.win.getMouse() # wait for click
-        pt = on_click(pnt, self.circles, self.pieces, self.player, self.circles_margin, self.col_width)
-        while pt == (-1,-1):
-            pnt = self.win.getMouse()
-            pt = on_click(pnt, self.circles, self.pieces, self.player, self.circles_margin, self.col_width)
-        data = struct.pack("BB", pt[0], pt[1])
-        self.transport.write(data)
-        self.turn_text.setText("Their Turn")
-
-    def dataReceived(self, data):
-        "As soon as any data is received, write it back."
-        print("Server said:", data)
-        x,y = struct.unpack("<BB", data)
-        self.circles[x][y].setFill("yellow")
-        self.pieces[x][y] = 1
-        #check for their win
-        winner=board_won(self.pieces, 2)
-        if winner!=-1:
-            self.turn_text.setText("They Won!")
-            self.turn_text.setTextColor("yellow")
-            sleep(3)
-            self.win.getMouse()
-            return
-        #make our move
-        self.turn_text.setText("Your Turn")
-        pnt = self.win.getMouse() # wait for click
-        pt = on_click(pnt, self.circles, self.pieces, self.player, self.circles_margin, self.col_width)
-        while pt == (-1,-1):
-            pnt = self.win.getMouse()
-            pt = on_click(pnt, self.circles, self.pieces, self.player, self.circles_margin, self.col_width)
-        data = struct.pack("BB", pt[0], pt[1])
-        self.transport.write(data)
-        self.turn_text.setText("Their Turn")
-        #check for our win
-        winner=board_won(self.pieces, 2)
-        if winner!=-1:
-            self.turn_text.setText("You Won!")
-            self.turn_text.setTextColor("red")
-            sleep(3)
-            self.win.getMouse()
-            return
-
-    def connectionLost(self, reason):
-        print("connection lost")
-
-class EchoClientFactory(protocol.ClientFactory):
-    protocol = EchoClient
-
-    def __init__(self, waiting_win):
-        self.waiting_win = waiting_win
-
-    def clientConnectionFailed(self, connector, reason):
-        print("Connection failed. Reverting to Server...")
-        make_server(self.waiting_win)
-
-    def clientConnectionLost(self, connector, reason):
-        print("Connection lost - goodbye!")
-        reactor.stop()
-
-class EchoServer(protocol.Protocol):
-    """This is just about the simplest possible protocol"""
-
-    def __init__(self, waiting_win):
-        self.waiting_win = waiting_win
-
-    def connectionMade(self):
-        print("Connected to Client!")
-        self.waiting_win.close()
-        self.win, self.circles, self.turn_text, self.circles_margin, self.col_width = graphics_setup()
-        self.pieces = pieces_setup()
-        self.turn_text.setText("Their Turn")
-        self.player = (2, "yellow")
-
-    def dataReceived(self, data):
-        "As soon as any data is received, write it back."
-        print("Client Said: {}".format(data))
-        x,y = struct.unpack("<BB", data)
-        self.circles[x][y].setFill("red")
-        self.pieces[x][y] = 1
-        #check for their win
-        winner=board_won(self.pieces, 2)
-        if winner!=-1:
-            self.turn_text.setText("They Won!")
-            self.turn_text.setTextColor("red")
-            sleep(3)
-            self.win.getMouse()
-            return
-        #make our move
-        self.turn_text.setText("Your Turn")
-        pnt = self.win.getMouse() # wait for click
-        pt = on_click(pnt, self.circles, self.pieces, self.player, self.circles_margin, self.col_width)
-        while pt == (-1,-1):
-            pnt = self.win.getMouse()
-            pt = on_click(pnt, self.circles, self.pieces, self.player, self.circles_margin, self.col_width)
-        data = struct.pack("BB", pt[0], pt[1])
-        self.transport.write(data)
-        self.turn_text.setText("Their Turn")
-        #check for our win
-        winner=board_won(self.pieces, 2)
-        if winner!=-1:
-            self.turn_text.setText("You Won!")
-            self.turn_text.setTextColor("yellow")
-            sleep(3)
-            self.win.getMouse()
-            return
-
-
-class EchoServerFactory(protocol.ServerFactory):
-    protocol = EchoServer
-
-    def __init__(self, waiting_win):
-        self.waiting_win = waiting_win
-
-    def buildProtocol(self, addr):
-        return self.protocol(self.waiting_win)
 
 #main / initialize
 def main():
     online = type_ui()
 
     if online:
-        names = ["Other, Me"]
         waiting_win = waiting_ui()
-        f = EchoClientFactory(waiting_win)
+        f = ConnectClientFactory(waiting_win)
         reactor.connectTCP("localhost", 8000, f)
         reactor.run()
     else:
