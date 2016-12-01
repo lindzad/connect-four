@@ -21,7 +21,7 @@ if nothing, go random as long as not on no put list
 
 
 #check by chunking
-from logic import *
+from logic import board_won
 
 class Move(object):
 	def __init__(self, direction, player, num_filled, start_col, start_row, end_col, end_row):
