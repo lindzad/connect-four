@@ -38,21 +38,21 @@ def check_spot(board, col, row, player):
 	return True
 
 
-def col_right_height(board, col, row_height):
+def col_right_height(board, col, row_height, player, num_players):
 	if row_height<0:
 		return False
 	if row_height>0:
 		return board[col][row_height]==-1 and board[col][row_height-1]!=-1
-	return board[col][row_height]==-1
+	return board[col][row_height]==-1 and not sets_up_other(board, col, row_height, player, num_players)
 
 
-def diag_bottom_left_top_right_check(board, amount, col, row, player):
+def diag_bottom_left_top_right_check(board, amount, col, row, player, num_players):
 	goodspot=True
 	for k in range(4-amount):
 		if not check_spot(board, 6-col+amount+k, row+amount+k, player):
 			goodspot=False
 			break
-	if goodspot and col_right_height(board, 6-col+amount, row+amount): 
+	if goodspot and col_right_height(board, 6-col+amount, row+amount, player, num_players): 
 		#line from bottom left to top right
 		#print("diag1", amount)
 		return 6-col+amount
@@ -61,7 +61,7 @@ def diag_bottom_left_top_right_check(board, amount, col, row, player):
 		if not check_spot(board, 6-col-k-1, row-k, player):
 			goodspot=False
 			break
-	if goodspot and col_right_height(board, 6-col-1, row-1): 
+	if goodspot and col_right_height(board, 6-col-1, row-1, player, num_players): 
 		#from top right to bottom left
 		#print(6-i-1, j-1)
 		#print("diaga", amount)
@@ -69,13 +69,13 @@ def diag_bottom_left_top_right_check(board, amount, col, row, player):
 	return -1
 
 
-def diag_top_left_to_bottom_right(board, amount, col, row, player):
+def diag_top_left_to_bottom_right(board, amount, col, row, player, num_players):
 	goodspot=True
 	for k in range(4-amount): #goes from top left to bottom right
 		if not check_spot(board, col+amount+k, 5-row-amount-k, player):
 			goodspot=False
 			break
-	if goodspot and col_right_height(board, col+amount, 5-row-amount):
+	if goodspot and col_right_height(board, col+amount, 5-row-amount, player, num_players):
 		#print("dddd", amount)
 		return col+amount
 	goodspot=True
@@ -83,14 +83,14 @@ def diag_top_left_to_bottom_right(board, amount, col, row, player):
 		if not check_spot(board, col-k-1, 5-row+k, player):
 			goodspot=False
 			break
-	if goodspot and check_spot(board, col, row, player) and col_right_height(board, col-1, 6-row): 
+	if goodspot and check_spot(board, col, row, player) and col_right_height(board, col-1, 6-row, player, num_players): 
 		#bottom right to top left
 		#print("diagaaaa", amount)
 		return col-1
 	return -1
 
 
-def check_diag(board, amount, player, completed):
+def check_diag(board, amount, player, completed, num_players):
 	##arrays from low left to high right
 	for i in range(amount, 7):
 		for j in range(0, 6-amount+completed):
@@ -102,14 +102,14 @@ def check_diag(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					result = diag_bottom_left_top_right_check(board, amount, i, j, player)
+					result = diag_bottom_left_top_right_check(board, amount, i, j, player, num_players)
 					if result!=-1:
 						return result
 				if valid and completed:
 					return 0
 
 	#arrays from high left to low right
-	for i in range(0, 7-amount-completed):
+	for i in range(0, 7-amount+completed):
 		for j in range(0, 6-amount+completed):
 			if board[i][5-j]==player:
 				valid=True
@@ -119,7 +119,7 @@ def check_diag(board, amount, player, completed):
 						valid=False
 					k+=1
 				if valid and not completed:
-					result = diag_top_left_to_bottom_right(board, amount, i, j, player)
+					result = diag_top_left_to_bottom_right(board, amount, i, j, player, num_players)
 					if result!=-1:
 						return result
 				if valid and completed:
@@ -151,7 +151,7 @@ def check_col(board, amount, player, completed):
 	return -1
 
 
-def check_row(board, amount, player, completed):
+def check_row(board, amount, player, completed, num_players):
 	for col in range(0, 7-amount+completed):
 		for row in range(0, 6):
 			if board[col][row]==player:
@@ -166,7 +166,7 @@ def check_row(board, amount, player, completed):
 					for i in range(4-amount):
 						if not check_spot(board, col+amount+i, row, player):
 							goodspot=False
-					if goodspot and col_right_height(board, col+amount, row):
+					if goodspot and col_right_height(board, col+amount, row, player, num_players):
 						#print("row to right", amount)
 						return col+amount
 					goodspot=True
@@ -174,7 +174,7 @@ def check_row(board, amount, player, completed):
 						if not check_spot(board, col-1-i, row, player):
 							goodspot=False
 							break
-					if goodspot and col_right_height(board, col-1, row):
+					if goodspot and col_right_height(board, col-1, row, player, num_players):
 						#print("row left", amount)
 						return col-1
 				if valid and completed:
@@ -184,73 +184,73 @@ def check_row(board, amount, player, completed):
 
 def board_won(board, num_players):
 	for i in range(num_players):
-		verdict = check_row(board, 4, i, 1)
+		verdict = check_row(board, 4, i, 1, num_players)
 		if verdict!=-1:
 			return i
 		verdict = check_col(board, 4, i, 1)
 		if verdict!=-1:
 	 		return i
-		verdict = check_diag(board, 4, i, 1)
+		verdict = check_diag(board, 4, i, 1, num_players)
 		if verdict!=-1:
 			return i
 	return -1
 
-def winning_move(board, player):
-	col = check_row(board,3,player,0)
+def winning_move(board, player, num_players):
+	col = check_row(board,3,player,0, num_players)
 	if col!=-1:
 		return col
 	col = check_col(board, 3,player,0)
 	if col!=-1:
 		return col
-	col = check_diag(board, 3,player,0)
+	col = check_diag(board, 3,player,0, num_players)
 	return col
 
 def stop_other_three(board, player, num_players):
 	for i in range(num_players):
 		if i !=player:
-			col = check_row(board,3,i,0)
+			col = check_row(board,3,i,0, num_players)
 			if col!=-1:
 				return col
 			col= check_col(board, 3,i,0)
 			if col!=-1:
 				return col
-			col = check_diag(board, 3,i,0)
+			col = check_diag(board, 3,i,0, num_players)
 			if col!=-1:
 				return col
 	return -1
 
-def progress_two(board, player):
-	col = check_row(board,2,player, 0)
+def progress_two(board, player, num_players):
+	col = check_row(board,2,player, 0, num_players)
 	if col!=-1:
 		return col
 	col = check_col(board, 2,player,0)
 	if col!=-1:
 		return col
-	col = check_diag(board, 2,player,0)
+	col = check_diag(board, 2,player,0, num_players)
 	return col
 
 def defend_two(board, player, num_players):
 	for i in range(num_players):
 		if i !=player:
-			col = check_row(board,2,i, 0)
+			col = check_row(board,2,i, 0, num_players)
 			if col!=-1:
 				return col
 			col = check_col(board, 2,i,0)
 			if col!=-1:
 				return col
-			col = check_diag(board, 2,i, 0)
+			col = check_diag(board, 2,i, 0, num_players)
 			if col!=-1:
 				return col
 	return -1
 
-def next_to_existing(board, player):
-	col= check_row(board,1,player, 0)
+def next_to_existing(board, player, num_players):
+	col= check_row(board,1,player, 0, num_players)
 	if col!=-1:
 		return col
 	col= check_col(board, 1,player, 0)
 	if col!=-1:
 		return col
-	col= check_diag(board, 1,player, 0)
+	col= check_diag(board, 1,player, 0, num_players)
 	return col
 
 
@@ -262,8 +262,22 @@ def get_column(board):
 	return -1
 
 
+def sets_up_other(board, col, row, player, num_players):
+	new_board=[]
+	for i in range(7):
+		new_board.append([])
+		for j in range(6):
+			new_board[i].append(board[i][j])
+	new_board[col][row]=player
+	if board_won(new_board, num_players):
+		return False
+	if stop_other_three(new_board, player, num_players)!=-1:
+		return True
+	return False
+
+
 def ai_choose_col(board, player, num_players):
-	col = winning_move(board, player)
+	col = winning_move(board, player, num_players)
 	if col!=-1 and check_if_legal(board, col):
 		#print("winning move")
 		return col
@@ -271,7 +285,7 @@ def ai_choose_col(board, player, num_players):
 	if col!=-1 and check_if_legal(board, col):
 		#print("stop other from winning")
 		return col
-	col = progress_two(board, player)
+	col = progress_two(board, player, num_players)
 	if col!=-1 and check_if_legal(board, col):
 		#print("getting 3 from two")
 		return col
@@ -279,7 +293,7 @@ def ai_choose_col(board, player, num_players):
 	if col!=-1 and check_if_legal(board, col):
 		#print("stopping their two")
 		return col
-	col = next_to_existing(board, player)
+	col = next_to_existing(board, player, num_players)
 	if col!=-1 and check_if_legal(board, col):
 		#print("make two")
 		return col
@@ -306,10 +320,10 @@ if __name__ == "__main__":
 	board=[ \
 	[-1,-1,-1,-1,-1,-1], \
 	[-1,-1,-1,-1,-1,-1], \
-	[-1,-1,-1,-1,-1,-1], \
-	[-1,-1,-1,-1,-1,-1], \
-	[-1,-1,-1,-1,-1,-1], \
-	[-1,-1,-1,-1,-1,-1], \
+	[1,1,1,0,-1,-1], \
+	[-1,-1,0,-1,-1,-1], \
+	[-1,0,-1,-1,-1,-1], \
+	[0,-1,-1,-1,-1,-1], \
 	[-1,-1,-1,-1,-1,-1] \
 	]
 
