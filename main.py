@@ -64,8 +64,9 @@ def game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width)
         if winner!=-1:
             turn_text.setText("Winner is {}!".format(players[winner][1]))
             turn_text.setTextColor(players[winner][0])
-            sleep(3)
-            win.getMouse()
+            sleep(1)
+            if not win.isClosed():
+                win.getMouse()
             return
         count+=1
 
