@@ -57,7 +57,9 @@ def game_loop(win, circles, pieces, turn_text, names, circles_margin, col_width)
             sleep(0.5)
             place_in_col(x, circles, pieces, player)
         else: # human
-            on_click(win.getMouse(), circles, pieces, player, circles_margin, col_width)
+            sleep(0.5) # to prevent double click taking someone else's turn
+            if not win.isClosed():
+                on_click(win.getMouse(), circles, pieces, player, circles_margin, col_width)
         winner=board_won(pieces, num_players)
         if winner!=-1:
             turn_text.setText("Winner is {}!".format(players[winner][1]))
